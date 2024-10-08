@@ -1,9 +1,9 @@
 import Blog from "../model/blog.model.js";
 
+// get all the blogs
 export const getAllBlogs = async(req,res)=>{
     try {
         const {search,category,location} = req.query;
-        console.log(search);
 
         let query = {};
         if(search){
@@ -16,8 +16,6 @@ export const getAllBlogs = async(req,res)=>{
             }
         }
         if(category){
-            console.log("...query",query);
-            
             query ={
                 ...query,
                 category
@@ -43,6 +41,7 @@ export const getAllBlogs = async(req,res)=>{
     }
 }
 
+// create a blog post
 export const createBlog = async(req,res)=>{
     try {
         const {title,description,content,coverImg,category,author,rating} = req.body;
@@ -59,6 +58,7 @@ export const createBlog = async(req,res)=>{
     }
 }
 
+// delete ablog post
 export const deleteBlog = async(req,res)=>{
     try {
         const id =req.params.id;
@@ -72,6 +72,7 @@ export const deleteBlog = async(req,res)=>{
     }
 }
 
+// update a blog post
 export const updateBlog  = async(req,res)=>{
     try {
         const id = req.params.id;
@@ -100,6 +101,33 @@ export const getBlog = async(req,res)=>{
             return res.status(404).json({message:`Cannot find any blog with id ${id}`});
         }
         return res.status(200).json({message:'blog fetched successfully',blog});
+    } catch (error) {
+        console.log(error.message);
+        return res.status(500).json({err:error.message})
+    }
+}
+
+// related post
+export const relatedPost = async(req,res)=>{
+    try {
+        const {id} = req.params;
+        if(!id){
+            return res.status(400).json({message:'id is required!'});
+        }
+        const blog = await Blog.findById(id);
+        if(!blog){
+            return res.status(404).json({message:'cannot find any blog'})
+        }
+        const titleRegex = new RegExp(blog.title.split(' ').join('|'),'i');
+        const relatedQuery = {
+            _id:{$ne:id}, //exclude the current blog by id
+            title:{$regex:titleRegex}
+        }
+        const relatedPost = await Blog.find(relatedQuery);
+        if(!relatedPost){
+            return res.status(404).json({message:'cannot find any blog'})
+        }
+        return res.status(200).json({message:'fetched matching blogs',relatedPost});
     } catch (error) {
         console.log(error.message);
         return res.status(500).json({err:error.message})
