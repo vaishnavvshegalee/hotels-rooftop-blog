@@ -1,4 +1,5 @@
 import Blog from "../model/blog.model.js";
+import Comment from "../model/comment.model.js";
 
 // get all the blogs
 export const getAllBlogs = async(req,res)=>{
@@ -66,9 +67,12 @@ export const deleteBlog = async(req,res)=>{
         if(!blog){
             return res.status(404).json({message:`cannot find any blog with id ${id}`});
         }
+        const deleteComment = await Comment.deleteMany({post:id});
+        console.log(deleteComment);
+        
         return res.status(200).json({message:'blog deleted successfully',blog});
     } catch (error) {
-        return res.status(500).json({err:error});
+        return res.status(500).json({err:error.message});
     }
 }
 
@@ -100,7 +104,10 @@ export const getBlog = async(req,res)=>{
         if(!blog){
             return res.status(404).json({message:`Cannot find any blog with id ${id}`});
         }
-        return res.status(200).json({message:'blog fetched successfully',blog});
+        
+        // related comment
+        const comment = await Comment.find({id}).populate('user','username email')
+        return res.status(200).json({message:'blog fetched successfully',Post:blog,Comments:comment});
     } catch (error) {
         console.log(error.message);
         return res.status(500).json({err:error.message})

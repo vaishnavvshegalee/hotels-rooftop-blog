@@ -5,6 +5,7 @@ import mongoose from 'mongoose';
 import {config as cnf} from 'dotenv';
 cnf();
 import router from './src/routes/blog.route.js';
+import commentRouter from './src/routes/comment.route.js';
 const port =process.env.PORT || 5000;
 const app = express();
 
@@ -13,7 +14,8 @@ app.use(express.json());
 app.use(cors());
 app.use(morgan('dev'));
 
-
+app.use('/api/v1',router);
+app.use('/api/v1/comments',commentRouter)
 
 // connection
 mongoose.connect(process.env.MONGO_URL).then(()=>{
@@ -27,4 +29,3 @@ mongoose.connect(process.env.MONGO_URL).then(()=>{
     console.log('Something went wrong',err);
     
 })
-app.use('/api/v1',router);
